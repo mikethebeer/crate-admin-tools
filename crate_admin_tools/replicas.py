@@ -1,6 +1,7 @@
+from crate_admin_tools.schemas import get_all_tables
 from argh import arg
 from crate import client
-import re
+from crate_admin_tools.schemas import get_all_tables
 
 
 @arg("replicas", default="0-1", help="The number of replicas")
@@ -9,19 +10,7 @@ import re
 def replicas(replicas, schema=None, table=None, hosts="localhost:4200"):
     conn = client.connect(hosts, username="crate")
     cursor = conn.cursor()
-
-    cursor.execute(
-        """
-        select table_schema, table_name from information_schema.tables
-        where table_schema not in ('sys', 'blob', 'pg_catalog', 'information_schema')
-        order by table_schema, table_name
-        """
-    )
-    s_re = re.compile(fr"^{schema}$")
-    t_re = re.compile(fr"^{table}$")
-    result = cursor.fetchall()
-    filtered = [row for row in result if s_re.match(row[0])]
-    filtered = [row for row in filtered if t_re.match(row[1])]
+    filtered = get_all_tables(conn, schema, table)
 
     for row in filtered:
         schema = row[0]
