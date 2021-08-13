@@ -1,17 +1,16 @@
 import re
+
 from crate import client
 
 
-def get_all_tables(conn, schema=None, table=None):
-    cursor = conn.cursor()
-    cursor.execute(
+async def get_all_tables(client, schema=None, table=None):
+    result = await client.fetch(
         """
         select table_schema, table_name from information_schema.tables
         where table_schema not in ('sys', 'blob', 'pg_catalog', 'information_schema')
         order by table_schema, table_name
         """
     )
-    result = cursor.fetchall()
     s_re = re.compile(fr"^{schema}$")
     t_re = re.compile(fr"^{table}$")
 
@@ -21,15 +20,13 @@ def get_all_tables(conn, schema=None, table=None):
     return filtered
 
 
-def get_all_schemas(conn):
-    cursor = conn.cursor()
-    cursor.execute(
+async def get_all_schemas(client):
+    result = await client.fetch(
         """
         select distinct(table_schema) from information_schema.tables
         where table_schema not in ('sys', 'blob', 'pg_catalog', 'information_schema')
         order by 1
         """
     )
-    result = cursor.fetchall()
     res = [schema[0] for schema in result]
     return res
