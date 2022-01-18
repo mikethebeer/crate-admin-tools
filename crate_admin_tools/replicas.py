@@ -27,5 +27,5 @@ async def async_replicas(client, schema, table, replicas):
 @arg("-s", "--schema", default=r".*", help="The schema name pattern")
 @arg("-t", "--table", default=r".*", help="The table name pattern")
 def replicas(replicas, schema=None, table=None, hosts="localhost:4200"):
-    with DB(hosts) as client:
+    with DB(hosts, pool_size=20) as client:
         run(async_replicas, client, schema, table, replicas)
